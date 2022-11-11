@@ -7,8 +7,7 @@ import { compareCollections, pause } from './helpers/utils.js';
 
 const { JSDOM } = jsdom;
 
-for (let i = 0; i < 10; i++) {
-  await pause(50000);
+for (let i = 0; i < 2; i++) {
   (async () => {
     await pause(500);
     let html: string;
@@ -47,7 +46,7 @@ for (let i = 0; i < 10; i++) {
       newAds[id] = {
         id: id,
         url: node.querySelector('.css-rc5s2u').getAttribute('href'),
-        price: Number(node.querySelector('[data-testid=ad-price]').textContent),
+        // price: Number(node.querySelector('[data-testid=ad-price]').textContent),
 
         title: node.querySelector('.css-1pvd0aj-Text').textContent,
       };
@@ -64,4 +63,6 @@ for (let i = 0; i < 10; i++) {
 
     console.log('newIds', newIds);
   })();
+
+  await pause(50000);
 }
