@@ -3,66 +3,154 @@
 import axios from 'axios';
 import jsdom from 'jsdom';
 import db, { Ad, Collection } from './helpers/database.js';
-import { compareCollections, pause } from './helpers/utils.js';
-
+import { compareCollections, getDigitsOnly, pause } from './helpers/utils.js';
+import { CronJob } from 'cron'
 const { JSDOM } = jsdom;
 
-for (let i = 0; i < 2; i++) {
-  (async () => {
-    await pause(500);
-    let html: string;
-    try {
-      const resp = await axios.get(
-        'https://www.olx.pl/d/nieruchomosci/mieszkania/wynajem/warszawa/?search%5Border%5D=created_at:desc',
-      );
+let count = 0
 
-      html = resp.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.log('errorAxios', error);
-      } else {
-        console.log('error', error);
-      }
-    }
+ new CronJob(
+  '*/55 * * * * *',
+    function() {
+        console.log('я працую', count++);
 
-    const dom = new JSDOM(html);
+        (async () => {
+          await pause(500);
+          let html: string;
+          try {
+            const resp = await axios.get(
+              'https://www.olx.pl/d/nieruchomosci/mieszkania/wynajem/warszawa/?search%5Border%5D=created_at:desc',
+            );
 
-    const document = dom.window.document;
+            html = resp.data;
+          } catch (error) {
+            if (axios.isAxiosError(error)) {
+              console.log('errorAxios', error);
+            } else {
+              console.log('error', error);
+            }
+          }
 
-    const items = document.querySelectorAll('[data-cy=l-card]');
-    const newArrayItems = Array.from(items).filter(
-      (item) => !item.querySelector('[data-testid=adCard-featured]'),
-    );
-    console.log(newArrayItems.length);
+          const dom = new JSDOM(html);
 
-    const newAds: Collection<Ad> = {};
+          const document = dom.window.document;
 
-    newArrayItems.forEach((node) => {
-      const href = node.querySelector('.css-rc5s2u').getAttribute('href');
+          const items = document.querySelectorAll('[data-cy=l-card]');
+          const newArrayItems = Array.from(items).filter(
+            (item) => !item.querySelector('[data-testid=adCard-featured]'),
+          );
+          console.log(newArrayItems.length);
 
-      const hrefArr = href.split('-');
-      const id = hrefArr[hrefArr.length - 1].slice(0, -5);
+          const newAds: Collection<Ad> = {};
 
-      newAds[id] = {
-        id: id,
-        url: node.querySelector('.css-rc5s2u').getAttribute('href'),
-        // price: Number(node.querySelector('[data-testid=ad-price]').textContent),
+          newArrayItems.forEach((node) => {
+            const href = node.querySelector('.css-rc5s2u').getAttribute('href');
 
-        title: node.querySelector('.css-1pvd0aj-Text').textContent,
-      };
-    });
+            const hrefArr = href.split('-');
+            const id = hrefArr[hrefArr.length - 1].slice(0, -5);
+              // console.log('node.query11111', node.querySelector('[data-testid="ad-price"]').textContent)
+             newAds[id] = {
+              id: id,
+              url: node.querySelector('.css-rc5s2u').getAttribute('href'),
 
-    const saveAds = await db.getSavedAds();
+              price: getDigitsOnly(node.querySelector('[data-testid="ad-price"]').textContent),
 
-    const newIds = compareCollections(saveAds, newAds);
+              title: node.querySelector('.css-16v5mdi.er34gjf0').textContent,
+              // url:'url',
+              // price: 5,
+              // title:'title',
+            };
 
-    for (const id of newIds) {
-      await db.setNewAdd(newAds[id]);
-      await pause(500);
-    }
+          });
+          // console.log('ffff', newAds)
+          const saveAds = await db.getSavedAds();
 
-    console.log('newIds', newIds);
-  })();
+          const newIds = compareCollections(saveAds, newAds);
 
-  await pause(50000);
-}
+          for (const id of newIds) {
+            await db.setNewAdd(newAds[id]);
+            await pause(500);
+          }
+
+          console.log('newIds', newIds);
+
+        })();
+    },
+    null,
+    true,
+    'America/Los_Angeles'
+);
+// console.log("job", job)
+
+
+
+
+
+
+// console.log("gggggggggg")
+// for (let i = 0; i < 15; i++) {
+//   (async () => {
+//     await pause(500);
+//     let html: string;
+//     try {
+//       const resp = await axios.get(
+//         'https://www.olx.pl/d/nieruchomosci/mieszkania/wynajem/warszawa/?search%5Border%5D=created_at:desc',
+//       );
+
+//       html = resp.data;
+//     } catch (error) {
+//       if (axios.isAxiosError(error)) {
+//         console.log('errorAxios', error);
+//       } else {
+//         console.log('error', error);
+//       }
+//     }
+
+//     const dom = new JSDOM(html);
+
+//     const document = dom.window.document;
+
+//     const items = document.querySelectorAll('[data-cy=l-card]');
+//     const newArrayItems = Array.from(items).filter(
+//       (item) => !item.querySelector('[data-testid=adCard-featured]'),
+//     );
+//     console.log(newArrayItems.length);
+
+//     const newAds: Collection<Ad> = {};
+
+//     newArrayItems.forEach((node) => {
+//       const href = node.querySelector('.css-rc5s2u').getAttribute('href');
+
+//       const hrefArr = href.split('-');
+//       const id = hrefArr[hrefArr.length - 1].slice(0, -5);
+//         console.log('node.query11111', node.querySelector('[data-testid="ad-price"]').textContent)
+//        newAds[id] = {
+//         id: id,
+//         url: node.querySelector('.css-rc5s2u').getAttribute('href'),
+
+//         price: getDigitsOnly(node.querySelector('[data-testid="ad-price"]').textContent),
+
+//         title: node.querySelector('.css-16v5mdi.er34gjf0').textContent,
+//         // url:'url',
+//         // price: 5,
+//         // title:'title',
+//       };
+
+//     });
+//     // console.log('ffff', newAds)
+//     const saveAds = await db.getSavedAds();
+
+//     const newIds = compareCollections(saveAds, newAds);
+
+//     for (const id of newIds) {
+//       await db.setNewAdd(newAds[id]);
+//       await pause(500);
+//     }
+
+//     console.log('newIds', newIds);
+
+//   })();
+//   count = count+1
+//   console.log("count",count)
+//   await pause(30000);
+// }

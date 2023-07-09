@@ -14,3 +14,6 @@ export function compareCollections(
 ): string[] {
   return Object.keys(updates).filter((key: string) => !src[key]);
 }
+
+export const getDigitsOnly = (inputString: string) =>
+  Number(inputString.replace(/\D/g, ''));
