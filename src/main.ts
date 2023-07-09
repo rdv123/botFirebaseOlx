@@ -12,7 +12,7 @@ let count = 0
  new CronJob(
   '*/55 * * * * *',
     function() {
-        console.log('я працую', count++);
+        console.log('я працую N', count++);
 
         (async () => {
           await pause(500);
