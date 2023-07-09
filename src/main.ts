@@ -19,7 +19,8 @@ let count = 0
           let html: string;
           try {
             const resp = await axios.get(
-              'https://www.olx.pl/d/nieruchomosci/mieszkania/wynajem/warszawa/?search%5Border%5D=created_at:desc',
+              // 'https://www.olx.pl/d/nieruchomosci/mieszkania/wynajem/warszawa/?search%5Border%5D=created_at:desc',
+              'https://www.olx.pl/nieruchomosci/mieszkania/wynajem/warszawa/?search%5Bfilter_float_price:to%5D=1700&search%5Bfilter_float_m:from%5D=20'
             );
 
             html = resp.data;
